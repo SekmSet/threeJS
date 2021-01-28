@@ -11,6 +11,8 @@ class Scene {
   constructor() {
     this.clock = new THREE.Clock();
     this.player = {};
+    this.animations = {};
+    this.anims = ["Walk", "Kneeling"];
 
     this.init();
 
@@ -27,9 +29,7 @@ class Scene {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-    // this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.shadowMap.enabled = true;
-    // this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
     document.body.appendChild(this.renderer.domElement);
@@ -39,7 +39,7 @@ class Scene {
     const near = 0.1;
     const far = 1000;
     this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    this.camera.position.set(0, 100, 500);
+    this.camera.position.set(112, 100, 400);
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xaec6cf);
@@ -232,28 +232,82 @@ class Scene {
     manager.addHandler(/\.tga$/i, new TGALoader(manager));
     const loader = new FBXLoader(manager);
 
-    loader.load(`src/resources/personnage/Idle.fbx`, function (object) {
-      object.mixer = new THREE.AnimationMixer(object);
-      game.player.mixer = object.mixer;
-      game.player.root = object.mixer.getRoot();
+    loader.load(
+      `src/resources/personnage/annimation/Idle.fbx`,
+      function (object) {
+        object.mixer = new THREE.AnimationMixer(object);
+        game.player.mixer = object.mixer;
+        game.player.root = object.mixer.getRoot();
 
-      object.position.x = 100;
-      object.position.y = 6;
-      object.name = "Nyra_T-pose";
+        object.position.x = 100;
+        object.position.y = 6;
+        object.name = "Nyra_T-pose";
 
-      object.traverse(function (child) {
-        if (child.isMesh) {
-          //child.material.map = null;
-          child.castShadow = true;
-          child.receiveShadow = false;
-        }
-      });
+        object.traverse(function (child) {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = false;
+          }
+        });
 
-      game.scene.add(object);
-      game.player.object = object;
-      game.player.mixer.clipAction(object.animations[0]).play();
-      game.animate();
+        game.scene.add(object);
+        game.player.object = object;
+        game.animations.Idle = object.animations[0];
+        game.loadNextAnim(loader);
+
+        // game.player.mixer.clipAction(object.animations[0]).play();
+        // game.animate();
+      }
+    );
+  }
+
+  loadNextAnim(loader) {
+    let anim = this.anims.pop();
+    const game = this;
+    loader.load(`src/resources/personnage/annimation/${anim}.fbx`, (object) => {
+      game.animations[anim] = object.animations[0];
+      if (game.anims.length > 0) {
+        game.loadNextAnim(loader);
+      } else {
+        delete game.anims;
+        game.action = "Idle";
+        game.animate();
+      }
     });
+  }
+
+  toggleAnimation() {
+    if (this.action === "Idle") {
+      this.action = "Walk";
+    } else {
+      this.action = "Idle";
+    }
+  }
+
+  doAnAction(action) {
+    if (this.action === "Idle") {
+      this.action = action;
+    } else {
+      this.action = "Idle";
+    }
+  }
+
+  set action(name) {
+    const action = this.player.mixer.clipAction(this.animations[name]);
+    action.time = 0;
+    this.player.mixer.stopAllAction();
+    this.player.action = name;
+    this.player.actionTime = Date.now();
+    this.player.actionName = name;
+    action.fadeIn(0.5);
+    action.play();
+  }
+
+  get action() {
+    if (this.player === undefined || this.player.actionName === undefined) {
+      return "";
+    }
+    return this.player.actionName;
   }
 
   onWindowResize() {
