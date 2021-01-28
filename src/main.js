@@ -9,3 +9,5 @@ document.getElementById("changeAnimation").addEventListener("click", () => {
 document.getElementById("kneeling").addEventListener("click", () => {
   scene.doAnAction("Kneeling");
 });
+
+console.log(scene);

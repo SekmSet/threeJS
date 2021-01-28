@@ -27,35 +27,33 @@ class Scene {
 
   init() {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.setPixelRatio(window.devicePixelRatio);
-
-    document.body.appendChild(this.renderer.domElement);
-
-    const fov = 85;
-    const aspect = window.innerWidth / window.innerHeight;
-    const near = 0.1;
-    const far = 1000;
-    this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    this.camera.position.set(112, 100, 400);
+    // const fov = 85;
+    // const aspect = window.innerWidth / window.innerHeight;
+    // const near = 0.1;
+    // const far = 1000;
+    // this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    this.camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      1,
+      2000
+    );
+    this.camera.position.set(100, 36, -55);
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xaec6cf);
-
     this.scene.fog = new THREE.Fog(0xaec6cf, 200, 1000);
 
     this.HemisphereLight();
-    this.OrbitControls();
     this.DirectionalLight();
-    // this.PointLight();
-  }
+    this.OrbitControls();
 
-  OrbitControls() {
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, 5, 0);
-    this.controls.update();
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.shadowMap.enabled = true;
+    document.body.appendChild(this.renderer.domElement);
+
     window.addEventListener(
       "resize",
       () => {
@@ -63,16 +61,25 @@ class Scene {
       },
       false
     );
+
+    // this.();
+  }
+
+  OrbitControls() {
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.target.set(100, 30, -30);
+    this.controls.update();
   }
 
   DirectionalLight() {
     const light = new THREE.DirectionalLight(0xffffff);
     light.position.set(0, 200, 100);
-    light.castShadow = true;
-    light.shadow.camera.top = 180;
-    light.shadow.camera.bottom = -100;
-    light.shadow.camera.left = -120;
-    light.shadow.camera.right = 120;
+    light.castSPointLighthadow = true;
+    light.shadow.camera.top = 200;
+    light.shadow.camera.bottom = 200;
+    light.shadow.camera.left = 200;
+    light.shadow.camera.right = 200;
+    this.sun = light;
     this.scene.add(light);
   }
 
@@ -184,17 +191,15 @@ class Scene {
       new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
     );
     mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = 5;
+    // mesh.position.y = 5;
     mesh.receiveShadow = true;
     mesh.material.transparent = true;
-
     this.scene.add(mesh);
 
     let grid = new THREE.GridHelper(2000, 40, 0x000000, 0x000000);
     //grid.position.y = -100;
     grid.material.opacity = 0.2;
-    grid.position.y = 5;
-
+    // grid.position.y = 5;
     grid.material.transparent = true;
     this.scene.add(grid);
   }
@@ -240,7 +245,7 @@ class Scene {
         game.player.root = object.mixer.getRoot();
 
         object.position.x = 100;
-        object.position.y = 6;
+        // object.position.y = 5;
         object.name = "Nyra_T-pose";
 
         object.traverse(function (child) {
@@ -250,9 +255,11 @@ class Scene {
           }
         });
 
-        game.scene.add(object);
-        game.player.object = object;
+        game.player.object = new THREE.Object3D();
+        game.scene.add(game.player.object);
+        game.player.object.add(object);
         game.animations.Idle = object.animations[0];
+
         game.loadNextAnim(loader);
 
         // game.player.mixer.clipAction(object.animations[0]).play();
@@ -321,7 +328,18 @@ class Scene {
       const dt = this.clock.getDelta();
       this.animate();
       this.controls.update();
-      if (this.player.mixer !== undefined) this.player.mixer.update(dt);
+
+      if (this.player.mixer !== undefined) {
+        this.player.mixer.update(dt);
+      }
+
+      if (this.sun !== undefined) {
+        this.sun.position.x = this.player.object.position.x;
+        this.sun.position.y = this.player.object.position.y + 200;
+        this.sun.position.z = this.player.object.position.z + 100;
+        this.sun.target = this.player.object;
+      }
+
       this.renderer.render(this.scene, this.camera);
     });
   }
