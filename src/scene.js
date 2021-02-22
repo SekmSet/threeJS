@@ -2,7 +2,6 @@ import "./assets/style.css";
 
 import * as THREE from "three";
 import { LoadingManager } from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { TGALoader } from "three/examples/jsm/loaders/TGALoader";
@@ -40,7 +39,6 @@ class Scene {
       1,
       5000
     );
-    this.camera.position.set(112, 100, 600);
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xaec6cf);
@@ -231,6 +229,8 @@ class Scene {
       `src/resources/personnage/annimation/Idle.fbx`,
       function (object) {
         object.mixer = new THREE.AnimationMixer(object);
+        // size du personnage
+        object.scale.set(7, 7, 1);
         game.player.mixer = object.mixer;
         game.player.root = object.mixer.getRoot();
 
@@ -239,11 +239,14 @@ class Scene {
         object.traverse(function (child) {
           if (child.isMesh) {
             child.castShadow = true;
+            // child.scale.set(10, 12, 12);
             child.receiveShadow = false;
           }
         });
 
         game.player.object = new THREE.Object3D();
+        // game.player.object.scale.set(0.35, 0.35, 0.35);
+
         game.scene.add(game.player.object);
         game.player.object.add(object);
         game.animations.Idle = object.animations[0];
@@ -258,7 +261,7 @@ class Scene {
 
   movePlayer(dt) {
     if (this.player.move.forward > 0) {
-      const speed = this.player.action === "Run" ? 400 : 150;
+      const speed = this.player.action === "Run" ? 350 : 150;
       this.player.object.translateZ(dt * speed);
     } else {
       this.player.object.translateZ(-dt * 30);
@@ -270,15 +273,19 @@ class Scene {
     turn = -turn;
 
     if (forward > 0.3) {
-      if (this.player.action !== "Walk" && this.player.action !== "Run")
+      if (this.player.action !== "Walk" && this.player.action !== "Run") {
         this.action = "Walk";
+      }
     } else if (forward < -0.3) {
-      if (this.player.action !== "Walking Backwards")
+      if (this.player.action !== "Walking Backwards") {
         this.action = "Walking Backwards";
+      }
     } else {
       forward = 0;
       if (Math.abs(turn) > 0.1) {
-        if (this.player.action !== "Walk") this.action = "Walk";
+        if (this.player.action !== "Walk") {
+          this.action = "Walk";
+        }
       } else if (this.player.action !== "Idle") {
         this.action = "Idle";
       }
@@ -312,39 +319,12 @@ class Scene {
     });
   }
 
-  toggleAnimation() {
-    if (this.action === "Idle") {
-      this.action = "Walk";
-    } else {
-      this.action = "Idle";
-    }
-  }
-
-  doAnAction(action) {
-    if (this.action === "Idle") {
-      this.action = action;
-    } else {
-      this.action = "Idle";
-    }
-  }
   createCameras() {
-    const offset = new THREE.Vector3(0, 80, 0);
-    const front = new THREE.Object3D();
-    front.position.set(112, 100, 600);
-    front.parent = this.player.object;
     const back = new THREE.Object3D();
     back.position.set(0, 300, -600);
     back.parent = this.player.object;
-    const wide = new THREE.Object3D();
-    wide.position.set(178, 139, 1665);
-    wide.parent = this.player.object;
-    const overhead = new THREE.Object3D();
-    overhead.position.set(0, 400, 0);
-    overhead.parent = this.player.object;
-    const collect = new THREE.Object3D();
-    collect.position.set(40, 82, 94);
-    collect.parent = this.player.object;
-    this.player.cameras = { front, back, wide, overhead, collect };
+
+    this.player.cameras = { back };
     this.activeCamera = this.player.cameras.back;
   }
 
@@ -404,11 +384,11 @@ class Scene {
         0.05
       );
       const pos = this.player.object.position.clone();
-      pos.y += 200;
+      pos.y += 100;
       this.camera.lookAt(pos);
     }
 
-    if (this.sun !== undefined) {
+    if (this.sun !== undefined && this.player.object !== undefined) {
       this.sun.position.x = this.player.object.position.x;
       this.sun.position.y = this.player.object.position.y + 200;
       this.sun.position.z = this.player.object.position.z + 100;
