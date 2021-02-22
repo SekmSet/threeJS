@@ -6,13 +6,21 @@ import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { TGALoader } from "three/examples/jsm/loaders/TGALoader";
+import JoyStick from "./libs/Joystick";
 
 class Scene {
   constructor() {
     this.clock = new THREE.Clock();
     this.player = {};
     this.animations = {};
-    this.anims = ["Walk", "Kneeling"];
+    this.anims = [
+      "Walk",
+      "Kneeling",
+      "Run",
+      "Left Turn",
+      "Right Turn",
+      "Walking Backwards",
+    ];
 
     this.init();
 
@@ -27,19 +35,15 @@ class Scene {
 
   init() {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.clock = new THREE.Clock();
 
-    // const fov = 85;
-    // const aspect = window.innerWidth / window.innerHeight;
-    // const near = 0.1;
-    // const far = 1000;
-    // this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     this.camera = new THREE.PerspectiveCamera(
       45,
       window.innerWidth / window.innerHeight,
       1,
-      2000
+      5000
     );
-    this.camera.position.set(100, 36, -55);
+    this.camera.position.set(112, 100, 600);
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xaec6cf);
@@ -47,7 +51,7 @@ class Scene {
 
     this.HemisphereLight();
     this.DirectionalLight();
-    this.OrbitControls();
+    // this.OrbitControls();
 
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -61,8 +65,6 @@ class Scene {
       },
       false
     );
-
-    // this.();
   }
 
   OrbitControls() {
@@ -123,6 +125,7 @@ class Scene {
       this.scene.add(object);
 
       const tLoader = new THREE.TextureLoader();
+      object.position.x = 100;
 
       const petal01 = tLoader.load(
         `src/resources/arbre/textures/JA11_Petal01Back_dif_su.png`
@@ -175,7 +178,6 @@ class Scene {
       );
 
       object.traverse(function (child) {
-        console.log(child);
         if (child.isMesh) {
           child.material.map = texture;
           child.castShadow = true;
@@ -244,8 +246,6 @@ class Scene {
         game.player.mixer = object.mixer;
         game.player.root = object.mixer.getRoot();
 
-        object.position.x = 100;
-        // object.position.y = 5;
         object.name = "Nyra_T-pose";
 
         object.traverse(function (child) {
@@ -268,6 +268,41 @@ class Scene {
     );
   }
 
+  movePlayer(dt) {
+    if (this.player.move.forward > 0) {
+      const speed = this.player.action === "Walk" ? 400 : 150;
+      this.player.object.translateZ(dt * speed);
+    } else {
+      this.player.object.translateZ(-dt * 30);
+    }
+    this.player.object.rotateY(this.player.move.turn * dt);
+  }
+
+  playerControl(forward, turn) {
+    turn = -turn;
+
+    if (forward > 0.3) {
+      if (this.player.action !== "Walk" && this.player.action !== "Run")
+        this.action = "Walk";
+    } else if (forward < -0.3) {
+      if (this.player.action !== "Walking Backwards")
+        this.action = "Walking Backwards";
+    } else {
+      forward = 0;
+      if (Math.abs(turn) > 0.1) {
+        if (this.player.action !== "Walk") this.action = "Walk";
+      } else if (this.player.action !== "Idle") {
+        this.action = "Idle";
+      }
+    }
+
+    if (forward === 0 && turn === 0) {
+      delete this.player.move;
+    } else {
+      this.player.move = { forward, turn };
+    }
+  }
+
   loadNextAnim(loader) {
     let anim = this.anims.pop();
     const game = this;
@@ -276,6 +311,11 @@ class Scene {
       if (game.anims.length > 0) {
         game.loadNextAnim(loader);
       } else {
+        game.createCameras();
+        game.joystick = new JoyStick({
+          onMove: game.playerControl,
+          game: game,
+        });
         delete game.anims;
         game.action = "Idle";
         game.animate();
@@ -297,6 +337,30 @@ class Scene {
     } else {
       this.action = "Idle";
     }
+  }
+  createCameras() {
+    const offset = new THREE.Vector3(0, 80, 0);
+    const front = new THREE.Object3D();
+    front.position.set(112, 100, 600);
+    front.parent = this.player.object;
+    const back = new THREE.Object3D();
+    back.position.set(0, 300, -600);
+    back.parent = this.player.object;
+    const wide = new THREE.Object3D();
+    wide.position.set(178, 139, 1665);
+    wide.parent = this.player.object;
+    const overhead = new THREE.Object3D();
+    overhead.position.set(0, 400, 0);
+    overhead.parent = this.player.object;
+    const collect = new THREE.Object3D();
+    collect.position.set(40, 82, 94);
+    collect.parent = this.player.object;
+    this.player.cameras = { front, back, wide, overhead, collect };
+    this.activeCamera = this.player.cameras.back;
+  }
+
+  set activeCamera(object) {
+    this.player.cameras.active = object;
   }
 
   set action(name) {
@@ -324,24 +388,45 @@ class Scene {
   }
 
   animate() {
+    const dt = this.clock.getDelta();
     requestAnimationFrame((t) => {
-      const dt = this.clock.getDelta();
       this.animate();
-      this.controls.update();
-
-      if (this.player.mixer !== undefined) {
-        this.player.mixer.update(dt);
-      }
-
-      if (this.sun !== undefined) {
-        this.sun.position.x = this.player.object.position.x;
-        this.sun.position.y = this.player.object.position.y + 200;
-        this.sun.position.z = this.player.object.position.z + 100;
-        this.sun.target = this.player.object;
-      }
-
-      this.renderer.render(this.scene, this.camera);
+      // this.controls.update();
     });
+
+    if (this.player.mixer !== undefined) {
+      this.player.mixer.update(dt);
+    }
+
+    if (this.player.action === "Walk") {
+      const elapsedTime = Date.now() - this.player.actionTime;
+      if (elapsedTime > 1000 && this.player.move.forward > 0) {
+        this.action = "Run";
+      }
+    }
+    if (this.player.move !== undefined) this.movePlayer(dt);
+
+    if (
+      this.player.cameras !== undefined &&
+      this.player.cameras.active !== undefined
+    ) {
+      this.camera.position.lerp(
+        this.player.cameras.active.getWorldPosition(new THREE.Vector3()),
+        0.05
+      );
+      const pos = this.player.object.position.clone();
+      pos.y += 200;
+      this.camera.lookAt(pos);
+    }
+
+    if (this.sun !== undefined) {
+      this.sun.position.x = this.player.object.position.x;
+      this.sun.position.y = this.player.object.position.y + 200;
+      this.sun.position.z = this.player.object.position.z + 100;
+      this.sun.target = this.player.object;
+    }
+
+    this.renderer.render(this.scene, this.camera);
   }
 }
 

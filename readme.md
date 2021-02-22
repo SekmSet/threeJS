@@ -1,5 +1,9 @@
 # ThreeJS 
 
+```bash
+npm run dev
+```
+
 ## Links
 
 * [ThreeJS](https://threejs.org)
