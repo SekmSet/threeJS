@@ -1,3 +1,17 @@
 body {
   margin: 0
 }
+
+div {
+  width: 200px;
+  height: 20px;
+  background: #fff;
+  border: 2px solid #000;
+}
+
+div > div {
+  width: 200px;
+  height: 20px;
+  background: #000;
+  border: none;
+}

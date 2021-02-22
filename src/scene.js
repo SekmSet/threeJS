@@ -10,7 +10,6 @@ import JoyStick from "./libs/Joystick";
 
 class Scene {
   constructor() {
-    this.clock = new THREE.Clock();
     this.player = {};
     this.animations = {};
     this.anims = [
@@ -21,6 +20,7 @@ class Scene {
       "Right Turn",
       "Walking Backwards",
     ];
+    this.clock = new THREE.Clock();
 
     this.init();
 
@@ -34,9 +34,6 @@ class Scene {
   }
 
   init() {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.clock = new THREE.Clock();
-
     this.camera = new THREE.PerspectiveCamera(
       45,
       window.innerWidth / window.innerHeight,
@@ -53,6 +50,7 @@ class Scene {
     this.DirectionalLight();
     // this.OrbitControls();
 
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
@@ -100,16 +98,6 @@ class Scene {
   AmbientLight() {
     let light = new THREE.AmbientLight(0x404040, 100);
     this.scene.add(light);
-  }
-
-  threeMagnoliaOld() {
-    const loader = new OBJLoader();
-    loader.load(
-      "src/resources/arbre/OBJ_JA11_MagnoliaXSoulangeana_5.obj",
-      (object) => {
-        this.scene.add(object);
-      }
-    );
   }
 
   threeMagnolia() {
@@ -270,7 +258,7 @@ class Scene {
 
   movePlayer(dt) {
     if (this.player.move.forward > 0) {
-      const speed = this.player.action === "Walk" ? 400 : 150;
+      const speed = this.player.action === "Run" ? 400 : 150;
       this.player.object.translateZ(dt * speed);
     } else {
       this.player.object.translateZ(-dt * 30);
@@ -312,6 +300,7 @@ class Scene {
         game.loadNextAnim(loader);
       } else {
         game.createCameras();
+        // game.createColliders()
         game.joystick = new JoyStick({
           onMove: game.playerControl,
           game: game,
