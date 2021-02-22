@@ -1,13 +1,40 @@
 import "./assets/style.css";
 
 import * as THREE from "three";
-import { LoadingManager } from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { TGALoader } from "three/examples/jsm/loaders/TGALoader";
 import JoyStick from "./libs/Joystick";
 
+const progress = document.createElement("div");
+progress.className = "progress";
+
+const progressBar = document.createElement("div");
+progressBar.className = "progressBar";
+
+progress.appendChild(progressBar);
+document.body.appendChild(progress);
+
 class Scene {
+  loader() {
+    this.manager.onProgress = function (item, loaded, total) {
+      const canvas = document.querySelector("canvas");
+      const progress = document.querySelector(".progress");
+      const progressBar = document.querySelector(".progressBar");
+
+      canvas.style.display = "none";
+
+      const current = (loaded / total) * 100;
+
+      progressBar.innerText = Math.round(current) + "%";
+
+      if (current === 100) {
+        canvas.style.display = "block";
+        progress.style.display = "none";
+      }
+
+      progressBar.style.width = current + "%";
+    };
+  }
   constructor() {
     this.player = {};
     this.animations = {};
@@ -21,13 +48,16 @@ class Scene {
     ];
     this.clock = new THREE.Clock();
 
+    this.manager = new THREE.LoadingManager();
+
     this.init();
+    this.loader();
 
     this.tmpFloor();
     // this.grassFloor();
-    this.threeMagnolia();
-    this.japanTemple();
-    this.model();
+    this.loadThreeMagnolia();
+    this.loadJapanTemple();
+    this.loadPlayerModel();
 
     this.animate();
   }
@@ -46,7 +76,6 @@ class Scene {
 
     this.HemisphereLight();
     this.DirectionalLight();
-    // this.OrbitControls();
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -63,12 +92,6 @@ class Scene {
     );
   }
 
-  OrbitControls() {
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(100, 30, -30);
-    this.controls.update();
-  }
-
   DirectionalLight() {
     const light = new THREE.DirectionalLight(0xffffff);
     light.position.set(0, 200, 100);
@@ -81,32 +104,19 @@ class Scene {
     this.scene.add(light);
   }
 
-  PointLight() {
-    const light = new THREE.PointLight(0xc4c4c4, 0.3);
-    light.position.set(0, 300, 500);
-    this.scene.add(light);
-  }
-
   HemisphereLight() {
     let light = new THREE.HemisphereLight(0xffffff, 0x444444);
     light.position.set(0, 200, 0);
     this.scene.add(light);
   }
 
-  AmbientLight() {
-    let light = new THREE.AmbientLight(0x404040, 100);
-    this.scene.add(light);
-  }
-
-  threeMagnolia() {
-    const manager = new THREE.LoadingManager();
-
-    manager.setURLModifier((e) => {
+  loadThreeMagnolia() {
+    this.manager.setURLModifier((e) => {
       const paths = e.split("/");
       return "src/resources/arbre/" + paths.pop();
     });
 
-    const loader = new FBXLoader(manager);
+    const loader = new FBXLoader(this.manager);
     loader.load("BCY_JA11_MagnoliaSoulangeana_5.fbx", (object) => {
       this.scene.add(object);
 
@@ -142,15 +152,13 @@ class Scene {
     });
   }
 
-  japanTemple() {
-    const manager = new THREE.LoadingManager();
-
-    manager.setURLModifier((e) => {
+  loadJapanTemple() {
+    this.manager.setURLModifier((e) => {
       const paths = e.split("/");
       return "src/resources/japan-temple/" + paths.pop();
     });
 
-    const loader = new FBXLoader(manager);
+    const loader = new FBXLoader(this.manager);
     loader.load("temple_model3.fbx", (object) => {
       this.scene.add(object);
 
@@ -213,17 +221,16 @@ class Scene {
     this.scene.add(mesh);
   }
 
-  model() {
+  loadPlayerModel() {
     const game = this;
 
-    const manager = new LoadingManager(); // add handler for TGA textures
-    manager.setURLModifier((e) => {
+    this.manager.setURLModifier((e) => {
       return e
         .replace("X:/job/BSG/char/psd/", "/src/resources/personnage/Nyra_TGAs/")
         .replace(" copy", "");
     });
-    manager.addHandler(/\.tga$/i, new TGALoader(manager));
-    const loader = new FBXLoader(manager);
+    this.manager.addHandler(/\.tga$/i, new TGALoader(this.manager));
+    const loader = new FBXLoader(this.manager);
 
     loader.load(
       `src/resources/personnage/annimation/Idle.fbx`,
@@ -360,7 +367,6 @@ class Scene {
     const dt = this.clock.getDelta();
     requestAnimationFrame((t) => {
       this.animate();
-      // this.controls.update();
     });
 
     if (this.player.mixer !== undefined) {
@@ -368,12 +374,19 @@ class Scene {
     }
 
     if (this.player.action === "Walk") {
-      const elapsedTime = Date.now() - this.player.actionTime;
-      if (elapsedTime > 1000 && this.player.move.forward > 0) {
-        this.action = "Run";
+      if (this.player.move.forward > 0.6) {
+        if (this.action !== "Run") {
+          this.action = "Run";
+        }
+      } else {
+        if (this.action !== "Walk") {
+          this.action = "Walk";
+        }
       }
     }
-    if (this.player.move !== undefined) this.movePlayer(dt);
+    if (this.player.move !== undefined) {
+      this.movePlayer(dt);
+    }
 
     if (
       this.player.cameras !== undefined &&
