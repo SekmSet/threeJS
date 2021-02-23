@@ -5,36 +5,7 @@ import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { TGALoader } from "three/examples/jsm/loaders/TGALoader";
 import JoyStick from "./libs/Joystick";
 
-const progress = document.createElement("div");
-progress.className = "progress";
-
-const progressBar = document.createElement("div");
-progressBar.className = "progressBar";
-
-progress.appendChild(progressBar);
-document.body.appendChild(progress);
-
 class Scene {
-  loader() {
-    this.manager.onProgress = function (item, loaded, total) {
-      const canvas = document.querySelector("canvas");
-      const progress = document.querySelector(".progress");
-      const progressBar = document.querySelector(".progressBar");
-
-      canvas.style.display = "none";
-
-      const current = (loaded / total) * 100;
-
-      progressBar.innerText = Math.round(current) + "%";
-
-      if (current === 100) {
-        canvas.style.display = "block";
-        progress.style.display = "none";
-      }
-
-      progressBar.style.width = current + "%";
-    };
-  }
   constructor() {
     this.player = {};
     this.animations = {};
@@ -46,23 +17,14 @@ class Scene {
       "Right Turn",
       "Walking Backwards",
     ];
+
     this.clock = new THREE.Clock();
-
+    this.scene = new THREE.Scene();
     this.manager = new THREE.LoadingManager();
+    this.listener = new THREE.AudioListener();
+    this.sound = new THREE.Audio(this.listener);
+    this.audioLoader = new THREE.AudioLoader();
 
-    this.init();
-    this.loader();
-
-    this.tmpFloor();
-    // this.grassFloor();
-    this.loadThreeMagnolia();
-    this.loadJapanTemple();
-    this.loadPlayerModel();
-
-    this.animate();
-  }
-
-  init() {
     this.camera = new THREE.PerspectiveCamera(
       45,
       window.innerWidth / window.innerHeight,
@@ -70,9 +32,67 @@ class Scene {
       5000
     );
 
-    this.scene = new THREE.Scene();
+    // ajout des axes x, y, z (visualisation)
+    this.axesHelper = new THREE.AxesHelper(500);
+
+    this.loader();
+    this.loadMusic();
+    this.init();
+
+    this.tmpFloor();
+    // this.grassFloor();
+    // this.loadThreeMagnolia();
+    // this.loadJapanTemple();
+    this.loadPlayerModel();
+
+    this.animate();
+  }
+
+  loader() {
+    const progress = document.createElement("div");
+    progress.className = "progress";
+
+    const progressBar = document.createElement("div");
+    progressBar.className = "progressBar";
+
+    progress.appendChild(progressBar);
+    document.body.appendChild(progress);
+
+    this.manager.onProgress = function (item, loaded, total) {
+      const canvas = document.querySelector("canvas");
+      canvas.style.display = "none";
+
+      const current = (loaded / total) * 100;
+      progressBar.innerText = Math.round(current) + "%";
+
+      if (current === 100) {
+        canvas.style.display = "block";
+        progress.style.display = "none";
+      }
+
+      progressBar.style.width = current + "%";
+    };
+  }
+
+  loadMusic() {
+    const number = Math.floor(Math.random() * Math.floor(5)) + 1;
+    this.audioLoader.load(`/sounds/sound-${number}.ogg`, (buffer) => {
+      this.sound.setBuffer(buffer);
+      this.sound.setLoop(true);
+      this.sound.setVolume(1.5);
+      this.sound.play();
+    });
+
+    this.camera.add(this.listener);
+    document.documentElement.addEventListener("mousedown", () => {
+      this.sound.resume();
+    });
+  }
+
+  init() {
     this.scene.background = new THREE.Color(0xaec6cf);
-    this.scene.fog = new THREE.Fog(0xaec6cf, 200, 1000);
+    // this.scene.fog = new THREE.Fog(0xaec6cf, 200, 1000);
+    this.scene.add(this.axesHelper);
 
     this.HemisphereLight();
     this.DirectionalLight();
@@ -197,7 +217,7 @@ class Scene {
     grid.material.opacity = 0.2;
     // grid.position.y = 5;
     grid.material.transparent = true;
-    this.scene.add(grid);
+    // this.scene.add(grid);
   }
 
   grassFloor() {
