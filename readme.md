@@ -26,7 +26,7 @@ npm run dev
   
 * [Tuto](https://threejsfundamentals.org/threejs/lessons/threejs-load-obj.html)
 
-* [Need help with axes](https://threejs.org/docs/#api/en/helpers/AxesHelper)
+* [AxesHelper](https://threejs.org/docs/#api/en/helpers/AxesHelper)
 
 * [Use music](https://threejs.org/docs/#api/en/audio/AudioListener)
 
@@ -43,3 +43,4 @@ npm run dev
 ## Tips
 
 * If you want to **add song** on your ThreeJs project, you have to use the `ogg` format. You can use an online convertor to convert a Youtube video ! *I tried with a `mp3` format but it did'nt work*
+* If you need help with the axes *(x, y, z)* use this ThreeJS function : **AxesHelper** *(documentation link : `General links : tuto, documentation` - `AxesHelper`)*

@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { TGALoader } from "three/examples/jsm/loaders/TGALoader";
 import JoyStick from "./libs/Joystick";
+import Stats from "three/examples/jsm/libs/stats.module";
 
 class Scene {
   constructor() {
@@ -16,6 +17,8 @@ class Scene {
       "Left Turn",
       "Right Turn",
       "Walking Backwards",
+      "Jump",
+      "Boxing",
     ];
 
     this.clock = new THREE.Clock();
@@ -24,6 +27,7 @@ class Scene {
     this.listener = new THREE.AudioListener();
     this.sound = new THREE.Audio(this.listener);
     this.audioLoader = new THREE.AudioLoader();
+    this.stats = new Stats();
 
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -41,9 +45,21 @@ class Scene {
 
     this.tmpFloor();
     // this.grassFloor();
-    // this.loadThreeMagnolia();
-    // this.loadJapanTemple();
+    this.loadThreeMagnolia();
+    this.loadJapanTemple();
     this.loadPlayerModel();
+
+    // document.addEventListener("keyup", function (event) {
+    //   if (event.defaultPrevented) {
+    //     return;
+    //   }
+    //
+    //   var key = event.key || event.keyCode;
+    //
+    //   if (key === 'Escape' || key === 'Esc' || key === 27) {
+    //     doWhateverYouWantNowThatYourKeyWasHit();
+    //   }
+    // });
 
     this.animate();
   }
@@ -79,7 +95,7 @@ class Scene {
     this.audioLoader.load(`/sounds/sound-${number}.ogg`, (buffer) => {
       this.sound.setBuffer(buffer);
       this.sound.setLoop(true);
-      this.sound.setVolume(1.5);
+      this.sound.setVolume(0.5);
       this.sound.play();
     });
 
@@ -102,6 +118,8 @@ class Scene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     document.body.appendChild(this.renderer.domElement);
+
+    document.body.appendChild(this.stats.dom);
 
     window.addEventListener(
       "resize",
@@ -180,6 +198,7 @@ class Scene {
 
     const loader = new FBXLoader(this.manager);
     loader.load("temple_model3.fbx", (object) => {
+      object.position.set(100, 0, 100);
       this.scene.add(object);
 
       const tLoader = new THREE.TextureLoader();
@@ -287,12 +306,93 @@ class Scene {
   }
 
   movePlayer(dt) {
-    if (this.player.move.forward > 0) {
-      const speed = this.player.action === "Run" ? 350 : 150;
-      this.player.object.translateZ(dt * speed);
-    } else {
-      this.player.object.translateZ(-dt * 30);
+    const pos = this.player.object.position.clone();
+    pos.y += 60;
+    let dir = new THREE.Vector3();
+    this.player.object.getWorldDirection(dir);
+    if (this.player.move.forward < 0) dir.negate();
+    let raycaster = new THREE.Raycaster(pos, dir);
+    let blocked = false;
+    const colliders = this.colliders;
+
+    if (colliders !== undefined) {
+      const intersect = raycaster.intersectObjects(colliders);
+      if (intersect.length > 0) {
+        if (intersect[0].distance < 50) blocked = true;
+      }
     }
+
+    if (!blocked) {
+      if (this.player.move.forward > 0) {
+        const speed = this.player.action == "Run" ? 550 : 150;
+        this.player.object.translateZ(dt * speed);
+      } else {
+        this.player.object.translateZ(-dt * 30);
+      }
+    }
+
+    if (colliders !== undefined) {
+      //cast left
+      dir.set(-1, 0, 0);
+      dir.applyMatrix4(this.player.object.matrix);
+      dir.normalize();
+      raycaster = new THREE.Raycaster(pos, dir);
+
+      let intersect = raycaster.intersectObjects(colliders);
+      if (intersect.length > 0) {
+        if (intersect[0].distance < 50)
+          this.player.object.translateX(100 - intersect[0].distance);
+      }
+
+      //cast right
+      dir.set(1, 0, 0);
+      dir.applyMatrix4(this.player.object.matrix);
+      dir.normalize();
+      raycaster = new THREE.Raycaster(pos, dir);
+
+      intersect = raycaster.intersectObjects(colliders);
+      if (intersect.length > 0) {
+        if (intersect[0].distance < 50)
+          this.player.object.translateX(intersect[0].distance - 100);
+      }
+
+      //cast down
+      dir.set(0, -1, 0);
+      pos.y += 200;
+      raycaster = new THREE.Raycaster(pos, dir);
+      const gravity = 30;
+
+      intersect = raycaster.intersectObjects(colliders);
+      if (intersect.length > 0) {
+        const targetY = pos.y - intersect[0].distance;
+        if (targetY > this.player.object.position.y) {
+          //Going up
+          this.player.object.position.y =
+            0.8 * this.player.object.position.y + 0.2 * targetY;
+          this.player.velocityY = 0;
+        } else if (targetY < this.player.object.position.y) {
+          //Falling
+          if (this.player.velocityY == undefined) this.player.velocityY = 0;
+          this.player.velocityY += dt * gravity;
+          this.player.object.position.y -= this.player.velocityY;
+          if (this.player.object.position.y < targetY) {
+            this.player.velocityY = 0;
+            this.player.object.position.y = targetY;
+          }
+        }
+      } else if (this.player.object.position.y > 0) {
+        if (this.player.velocityY == undefined) this.player.velocityY = 0;
+        this.player.velocityY += dt * gravity;
+        this.player.object.position.y -= this.player.velocityY;
+        if (this.player.object.position.y < 0) {
+          this.player.velocityY = 0;
+          this.player.object.position.y = 0;
+        }
+      }
+    }
+
+    // object.onkeypress = function(){myScript};
+
     this.player.object.rotateY(this.player.move.turn * dt);
   }
 
@@ -334,7 +434,7 @@ class Scene {
         game.loadNextAnim(loader);
       } else {
         game.createCameras();
-        // game.createColliders()
+        game.createColliders();
         game.joystick = new JoyStick({
           onMove: game.playerControl,
           game: game,
@@ -383,6 +483,59 @@ class Scene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
+  setupKeyControls() {
+    document.onkeydown = function (e) {
+      switch (e.key) {
+        case 32:
+          cube.rotation.x += 0.1;
+          break;
+      }
+    };
+  }
+  createColliders() {
+    const geometry = new THREE.BoxGeometry(300.5, 200, 385);
+    const geometryMagnolia = new THREE.BoxGeometry(80, 100, 80);
+    const geometryTempleFront = new THREE.BoxGeometry(300.5, 75, 100);
+
+    const geometryTempleBox = new THREE.BoxGeometry(95, 45, 60);
+
+    const geometryTempleRock = new THREE.BoxGeometry(100, 50, 120);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      wireframe: false,
+      alphaTest: 0.05,
+      opacity: 0,
+      transparent: true,
+    });
+
+    this.colliders = [];
+
+    const temple = new THREE.Mesh(geometry, material);
+    temple.position.set(-190.5, 100, 475);
+    this.scene.add(temple);
+    this.colliders.push(temple);
+
+    const frontTemple = new THREE.Mesh(geometryTempleFront, material);
+    frontTemple.position.set(-190.5, 25, 700);
+    this.scene.add(frontTemple);
+    this.colliders.push(frontTemple);
+
+    const frontTempleBox = new THREE.Mesh(geometryTempleBox, material);
+    frontTempleBox.position.set(-155, 90, 700);
+    this.scene.add(frontTempleBox);
+    this.colliders.push(frontTempleBox);
+
+    const frontTempleRock = new THREE.Mesh(geometryTempleRock, material);
+    frontTempleRock.position.set(-265, 25, 795);
+    this.scene.add(frontTempleRock);
+    this.colliders.push(frontTempleRock);
+
+    const magnolia = new THREE.Mesh(geometryMagnolia, material);
+    magnolia.position.set(100, 50, 0);
+    this.scene.add(magnolia);
+    this.colliders.push(magnolia);
+  }
+
   animate() {
     const dt = this.clock.getDelta();
     requestAnimationFrame((t) => {
@@ -427,6 +580,8 @@ class Scene {
       this.sun.position.z = this.player.object.position.z + 100;
       this.sun.target = this.player.object;
     }
+
+    this.stats.update();
 
     this.renderer.render(this.scene, this.camera);
   }

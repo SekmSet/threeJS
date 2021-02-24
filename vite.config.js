@@ -6,6 +6,7 @@ module.exports = {
       "three/examples/jsm/loaders/MTLLoader",
       "three/examples/jsm/loaders/FBXLoader",
       "three/examples/jsm/loaders/TGALoader",
+      "three/examples/jsm/libs/stats.module",
     ],
   },
 };
