@@ -1,10 +1,8 @@
 import "./assets/style.css";
 
 import * as THREE from "three";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import Stats from "three/examples/jsm/libs/stats.module";
 import UiStats from "./controllers/uiStats";
-import Music from "./controllers/music";
 import Lights from "./controllers/lights";
 import Player from "./controllers/models/caracters/main";
 import Floor from "./controllers/models/floor";
