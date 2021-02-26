@@ -7,6 +7,7 @@ import JoyStick from "./libs/Joystick";
 import Stats from "three/examples/jsm/libs/stats.module";
 import UiStats from "./controllers/uiStats";
 import Music from "./controllers/music";
+import Lights from "./controllers/lights";
 
 class Scene {
   constructor() {
@@ -30,6 +31,7 @@ class Scene {
     this.stats = new Stats();
     this.uiState = new UiStats();
     this.music = new Music();
+    this.lights = new Lights(this.scene);
 
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -43,7 +45,6 @@ class Scene {
     this.axesHelper = new THREE.AxesHelper(500);
 
     this.loader();
-    this.music.loadMusic(this.camera);
     this.init();
     this.skybox();
     // this.tmpFloor();
@@ -83,6 +84,8 @@ class Scene {
   }
 
   loader() {
+    this.music.loadMusic(this.camera);
+
     const progress = document.createElement("div");
     progress.className = "progress";
 
@@ -98,7 +101,9 @@ class Scene {
         <b>Pour quitter le mode</b> ESC <br>
         <b>Pour courrir</b> : touche avancer + Maj gauche<br>
         <b>Pour s'accroupir</b> : touche K<br>
-        <b>Pour se battre</b> : touche A`;
+        <b>Pour se battre</b> : touche A<br>
+        <b>Pour afficher ses statistiques</b> : touche M
+    `;
     progress.appendChild(progressBar);
     progress.appendChild(info);
     document.body.appendChild(progress);
@@ -119,30 +124,9 @@ class Scene {
     };
   }
 
-  loadMusic() {
-    const number = Math.floor(Math.random() * Math.floor(5)) + 1;
-    this.audioLoader.load(`/sounds/sound-${number}.ogg`, (buffer) => {
-      this.sound.setBuffer(buffer);
-      this.sound.setLoop(true);
-      this.sound.setVolume(0.5);
-      this.sound.play();
-    });
-
-    this.camera.add(this.listener);
-
-    document.documentElement.addEventListener("mousedown", () => {
-      if (!this.sound) {
-        this.sound.resume();
-      }
-    });
-  }
-
   init() {
     this.scene.background = new THREE.Color(0xaec6cf);
     this.scene.add(this.axesHelper);
-
-    this.HemisphereLight();
-    this.DirectionalLight();
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -659,13 +643,6 @@ class Scene {
       const pos = this.player.object.position.clone();
       pos.y += 100;
       this.camera.lookAt(pos);
-    }
-
-    if (this.sun !== undefined && this.player.object !== undefined) {
-      this.sun.position.x = this.player.object.position.x;
-      this.sun.position.y = this.player.object.position.y + 200;
-      this.sun.position.z = this.player.object.position.z + 100;
-      this.sun.target = this.player.object;
     }
 
     this.renderer.render(this.scene, this.camera);
