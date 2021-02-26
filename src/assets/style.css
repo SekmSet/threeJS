@@ -4,20 +4,28 @@ body, html {
   margin: 0;
 }
 
+body {
+  background-image: url("background.jpg");
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .progress {
   display: flex;
   height: 100%;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 
-div {
-  height: 20px;
-  background: #fff;
-  border: 2px solid #000;
-}
+.progress > .progressBar {
+  width: 200px;
+  height: 40px;
+  background: #000;
+  border: none;
 
-.progressBar{
   color: whitesmoke;
   font-style: italic;
   text-align: center;
@@ -25,10 +33,10 @@ div {
   line-height: 2.5em;
 }
 
-.progress > div {
-  width: 200px;
-  height: 40px;
-  background: #000;
-  border: none;
+.info {
+  margin: 1em 1em;
+  padding: 1em;
+  background: rgba(255,255,255, 0.60);
+  border: solid black 1px;
+  font-size: 1.5em;
 }
-

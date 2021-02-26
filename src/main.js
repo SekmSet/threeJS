@@ -1,5 +1,3 @@
-import Scene from "./scene";
+import Scene2 from "./scene2";
 
-const scene = new Scene();
-
-console.log(scene);
+const scene = new Scene2();

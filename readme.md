@@ -12,6 +12,12 @@ npm run dev
 - ViteJS
 - ThreeJS
 
+# Desploy
+
+```bash
+gsutil rsync -r . gs://last_samourai.sekhmset.me
+```
+
 ## Links
 
 ### General links : tuto, documentation
