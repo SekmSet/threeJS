@@ -179,24 +179,6 @@ class Scene {
     this.scene.add(cube);
   }
 
-  DirectionalLight() {
-    const light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(0, 200, 100);
-    light.castSPointLighthadow = true;
-    light.shadow.camera.top = 200;
-    light.shadow.camera.bottom = 200;
-    light.shadow.camera.left = 200;
-    light.shadow.camera.right = 200;
-    this.sun = light;
-    this.scene.add(light);
-  }
-
-  HemisphereLight() {
-    let light = new THREE.HemisphereLight(0xffffff, 0x444444);
-    light.position.set(0, 200, 0);
-    this.scene.add(light);
-  }
-
   loadThreeMagnolia() {
     this.manager.setURLModifier((e) => {
       const paths = e.split("/");
