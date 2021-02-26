@@ -5,6 +5,7 @@ import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { TGALoader } from "three/examples/jsm/loaders/TGALoader";
 import JoyStick from "./libs/Joystick";
 import Stats from "three/examples/jsm/libs/stats.module";
+import UiStats from "./controllers/uiStats";
 
 class Scene {
   constructor() {
@@ -29,6 +30,7 @@ class Scene {
     this.sound = new THREE.Audio(this.listener);
     this.audioLoader = new THREE.AudioLoader();
     this.stats = new Stats();
+    this.uiState = new UiStats();
 
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -57,21 +59,16 @@ class Scene {
   AddEventHandler() {
     document.addEventListener("keydown", (event) => {
       this.keyStates[event.code] = true;
-      console.log("block", event.code);
 
-      if (this.keyStates["Semicolon"]) {
-        const ui = document.querySelector("#ui");
-        ui.style.display = "block";
-      }
+      // show ui
+      this.uiState.show(this.keyStates);
     });
 
     document.addEventListener("keyup", (event) => {
       this.keyStates[event.code] = false;
 
-      if (!this.keyStates["Semicolon"]) {
-        const ui = document.querySelector("#ui");
-        ui.style.display = "none";
-      }
+      // hide ui
+      this.uiState.hide(this.keyStates);
     });
 
     document.addEventListener("mousedown", () => {
