@@ -6,7 +6,7 @@ import { TGALoader } from "three/examples/jsm/loaders/TGALoader";
 import JoyStick from "./libs/Joystick";
 import Stats from "three/examples/jsm/libs/stats.module";
 
-class Scene2 {
+class Scene {
   constructor() {
     this.player = {};
     this.animations = {};
@@ -57,10 +57,21 @@ class Scene2 {
   AddEventHandler() {
     document.addEventListener("keydown", (event) => {
       this.keyStates[event.code] = true;
+      console.log("block", event.code);
+
+      if (this.keyStates["Semicolon"]) {
+        const ui = document.querySelector("#ui");
+        ui.style.display = "block";
+      }
     });
 
     document.addEventListener("keyup", (event) => {
       this.keyStates[event.code] = false;
+
+      if (!this.keyStates["Semicolon"]) {
+        const ui = document.querySelector("#ui");
+        ui.style.display = "none";
+      }
     });
 
     document.addEventListener("mousedown", () => {
@@ -86,7 +97,7 @@ class Scene2 {
     info.className = "info";
     info.innerHTML = `<br>
         <b>Avec le joystick : </b> avancer, droite, gauche, reculer <hr>
-        <b>Avec le le clavier :</b> avancer <i>(Z ou flèche du haut)</i>, droite <i>(D ou flèche de droite)</i>, gauche <i>(Q ou flèche de gauche)</i>, reculer <i>(S ou flèche du bas)</i><br>
+        <b>Avec le clavier :</b> avancer <i>(Z ou flèche du haut)</i>, droite <i>(D ou flèche de droite)</i>, gauche <i>(Q ou flèche de gauche)</i>, reculer <i>(S ou flèche du bas)</i><br>
         <b>Pour sauter</b> : touche ESPACE <br>
         <b>Pour quitter le mode</b> ESC <br>
         <b>Pour courrir</b> : touche avancer + Maj gauche<br>
@@ -667,4 +678,4 @@ class Scene2 {
   }
 }
 
-export default Scene2;
+export default Scene;

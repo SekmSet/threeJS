@@ -1,3 +1,3 @@
-import Scene2 from "./scene2";
+import Scene from "./scene";
 
-const scene = new Scene2();
+const scene = new Scene();

@@ -40,3 +40,70 @@ body {
   border: solid black 1px;
   font-size: 1.5em;
 }
+
+.ui {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-family: 'IM Fell French Canon', serif;
+}
+
+.stats-tooltip {
+  position: relative;
+  display: inline-block;
+  z-index: 100;
+}
+
+.stats-tooltip .stats-tooltiptext {
+  visibility: hidden;
+  width: 200px;
+  background-color: black;
+  opacity: 0.75;
+  text-align: center;
+  padding: 1em;
+  border-radius: 6px;
+  color: white;
+  font-size: medium;
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  right: 105%;
+}
+
+.stats-tooltip:hover .stats-tooltiptext {
+  visibility: visible;
+}
+
+.stats-title {
+  font-size: 3em;
+  color: white;
+  text-shadow: 4px 4px black;
+}
+
+.stats {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin: 30px;
+  z-index: 1;
+}
+
+.stats-inner {
+  display: flex;
+  flex-direction: column;
+  background: rgba(1.0, 1.0, 1.0, 0.75);
+  padding: 20px 20px;
+  width: 250px;
+  padding-top: 5px;
+}
+
+.stats-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  font-size: 2em;
+  color: white;
+  text-shadow: 4px 4px black;
+}

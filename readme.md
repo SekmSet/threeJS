@@ -15,7 +15,9 @@ npm run dev
 # Desploy
 
 ```bash
-gsutil rsync -r . gs://last_samourai.sekhmset.me
+npm run build
+gsutil rsync -r dist gs://last_samourai.sekhmset.me
+gsutil rsync -r src gs://last_samourai.sekhmset.me/src
 ```
 
 ## Links
