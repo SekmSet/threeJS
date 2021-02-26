@@ -47,7 +47,6 @@ class Scene {
     this.loader();
     this.init();
     this.skybox();
-    // this.tmpFloor();
     this.grassFloor();
     this.loadThreeMagnolia();
     this.loadJapanTemple();
@@ -268,21 +267,6 @@ class Scene {
         }
       });
     });
-  }
-
-  tmpFloor() {
-    let mesh = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(5000, 5000),
-      new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
-    );
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.receiveShadow = true;
-    mesh.material.transparent = true;
-    this.scene.add(mesh);
-
-    let grid = new THREE.GridHelper(2000, 40, 0x000000, 0x000000);
-    grid.material.opacity = 0.2;
-    grid.material.transparent = true;
   }
 
   grassFloor() {
