@@ -2,10 +2,13 @@ import { TGALoader } from "three/examples/jsm/loaders/TGALoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import * as THREE from "three";
 import JoyStick from "../../../../libs/Joystick";
+import Keyboard from "../../../actions/moovs/keybord";
 
 export default class Player {
-  constructor(game) {
+  constructor(game, objects) {
     this.game = game;
+    this.objects = objects;
+    this.keyboard = new Keyboard(game, this);
     this.clock = new THREE.Clock();
     this.player = {};
     this.animations = {};
@@ -137,93 +140,12 @@ export default class Player {
   }
 
   createColliders() {
-    const geometry = new THREE.BoxGeometry(300.5, 200, 385);
-    const geometryMagnolia = new THREE.BoxGeometry(80, 100, 80);
-    const geometryTempleFront = new THREE.BoxGeometry(300.5, 75, 100);
-    const geometryTempleBox = new THREE.BoxGeometry(95, 45, 60);
-    const geometryTempleRock = new THREE.BoxGeometry(100, 50, 120);
-
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xff0000,
-      wireframe: false,
-      alphaTest: 0.05,
-      opacity: 0,
-      transparent: true,
-    });
-
     this.colliders = [];
 
-    const temple = new THREE.Mesh(geometry, material);
-    temple.position.set(-190.5, 100, 475);
-    this.game.scene.add(temple);
-    this.colliders.push(temple);
-
-    const frontTemple = new THREE.Mesh(geometryTempleFront, material);
-    frontTemple.position.set(-190.5, 25, 700);
-    this.game.scene.add(frontTemple);
-    this.colliders.push(frontTemple);
-
-    const frontTempleBox = new THREE.Mesh(geometryTempleBox, material);
-    frontTempleBox.position.set(-155, 90, 700);
-    this.game.scene.add(frontTempleBox);
-    this.colliders.push(frontTempleBox);
-
-    const frontTempleRock = new THREE.Mesh(geometryTempleRock, material);
-    frontTempleRock.position.set(-265, 25, 795);
-    this.game.scene.add(frontTempleRock);
-    this.colliders.push(frontTempleRock);
-
-    const magnolia = new THREE.Mesh(geometryMagnolia, material);
-    magnolia.position.set(100, 50, 0);
-    this.game.scene.add(magnolia);
-    this.colliders.push(magnolia);
-  }
-
-  controls() {
-    let forward = 0;
-    let turn = 0;
-
-    if (this.game.keyStates["KeyW"] || this.game.keyStates["ArrowUp"]) {
-      forward = 0.4;
-    }
-
-    if (
-      (this.game.keyStates["KeyW"] && this.game.keyStates["ShiftLeft"]) ||
-      (this.game.keyStates["ArrowUp"] && this.game.keyStates["ShiftLeft"])
-    ) {
-      forward = 0.7;
-    }
-
-    if (this.game.keyStates["KeyS" || this.game.keyStates["ArrowDown"]]) {
-      forward = -0.4;
-    }
-
-    if (this.game.keyStates["KeyA"] || this.game.keyStates["ArrowLeft"]) {
-      turn = -1;
-    }
-
-    if (this.game.keyStates["KeyD"] || this.game.keyStates["ArrowRight"]) {
-      turn = 1;
-    }
-
-    if (this.game.keyStates["KeyK"]) {
-      // if (this.player.action !== "Kneeling") {
-      //   this.action = "Kneeling";
-      // }
-    }
-
-    if (this.game.keyStates["KeyQ"]) {
-      // this.action = "Boxing";
-    }
-
-    if (this.game.keyStates["Space"]) {
-      // if (this.action !== "Jump") {
-      //   this.action = "Jump";
-      // }
-      this.player.object.position.y = 100;
-    }
-
-    this.playerControl(forward, turn);
+    this.objects.map((object) => {
+      this.game.scene.add(object);
+      this.colliders.push(object);
+    });
   }
 
   movePlayer(dt) {
@@ -245,7 +167,7 @@ export default class Player {
 
     if (!blocked) {
       if (this.player.move.forward > 0) {
-        const speed = this.player.action == "Run" ? 550 : 150;
+        const speed = this.player.action === "Run" ? 550 : 150;
         this.player.object.translateZ(dt * speed);
       } else {
         this.player.object.translateZ(-dt * 30);
@@ -293,7 +215,7 @@ export default class Player {
           this.player.velocityY = 0;
         } else if (targetY < this.player.object.position.y) {
           //Falling
-          if (this.player.velocityY == undefined) this.player.velocityY = 0;
+          if (this.player.velocityY === undefined) this.player.velocityY = 0;
           this.player.velocityY += dt * gravity;
           this.player.object.position.y -= this.player.velocityY;
           if (this.player.object.position.y < targetY) {
@@ -302,7 +224,7 @@ export default class Player {
           }
         }
       } else if (this.player.object.position.y > 0) {
-        if (this.player.velocityY == undefined) this.player.velocityY = 0;
+        if (this.player.velocityY === undefined) this.player.velocityY = 0;
         this.player.velocityY += dt * gravity;
         this.player.object.position.y -= this.player.velocityY;
         if (this.player.object.position.y < 0) {
@@ -322,7 +244,7 @@ export default class Player {
       this.player.mixer.update(dt);
 
       if (document.pointerLockElement) {
-        this.controls();
+        this.keyboard.controls();
       }
     }
 

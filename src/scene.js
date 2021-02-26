@@ -25,7 +25,10 @@ class Scene {
     this.floor = new Floor(this);
     this.threeMagnolia = new ThreeMagnolia(this);
     this.temple = new Temple(this);
-    this.player = new Player(this);
+    this.player = new Player(this, [
+      ...this.threeMagnolia.colliders(),
+      ...this.temple.colliders(),
+    ]);
 
     this.camera = new THREE.PerspectiveCamera(
       45,

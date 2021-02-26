@@ -41,4 +41,21 @@ export default class ThreeMagnolia {
       this.game.scene.add(object);
     });
   }
+
+  colliders() {
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      wireframe: false,
+      alphaTest: 0.05,
+      opacity: 0,
+      transparent: true,
+    });
+
+    const geometryMagnolia = new THREE.BoxGeometry(80, 100, 80);
+
+    const magnolia = new THREE.Mesh(geometryMagnolia, material);
+    magnolia.position.set(100, 50, 0);
+
+    return [magnolia];
+  }
 }
