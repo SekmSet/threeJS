@@ -6,6 +6,7 @@ import { TGALoader } from "three/examples/jsm/loaders/TGALoader";
 import JoyStick from "./libs/Joystick";
 import Stats from "three/examples/jsm/libs/stats.module";
 import UiStats from "./controllers/uiStats";
+import Music from "./controllers/music";
 
 class Scene {
   constructor() {
@@ -26,11 +27,9 @@ class Scene {
     this.clock = new THREE.Clock();
     this.scene = new THREE.Scene();
     this.manager = new THREE.LoadingManager();
-    this.listener = new THREE.AudioListener();
-    this.sound = new THREE.Audio(this.listener);
-    this.audioLoader = new THREE.AudioLoader();
     this.stats = new Stats();
     this.uiState = new UiStats();
+    this.music = new Music();
 
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -38,13 +37,13 @@ class Scene {
       1,
       5000
     );
-
     this.camera.rotation.order = "YXZ";
+
     // HELP : ajout des axes x, y, z (visualisation)
     this.axesHelper = new THREE.AxesHelper(500);
 
     this.loader();
-    this.loadMusic();
+    this.music.loadMusic(this.camera);
     this.init();
     this.skybox();
     // this.tmpFloor();
