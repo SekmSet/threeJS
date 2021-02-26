@@ -45,7 +45,7 @@ class Scene {
     this.floor.loadModel();
     this.threeMagnolia.loadModel();
     this.temple.loadModel();
-    this.player.loadPlayerModel();
+    this.player.loadModel();
     this.addEventHandler();
     this.animate();
   }

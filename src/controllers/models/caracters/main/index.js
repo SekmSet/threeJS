@@ -24,7 +24,7 @@ export default class Player {
     ];
   }
 
-  loadPlayerModel() {
+  loadModel() {
     this.game.manager.setURLModifier((e) => {
       return e
         .replace("X:/job/BSG/char/psd/", "/src/resources/personnage/Nyra_TGAs/")
