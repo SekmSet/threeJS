@@ -1,8 +1,8 @@
 import * as THREE from "three";
 
 export default class Lights {
-  constructor(scene) {
-    this.scene = scene;
+  constructor(game) {
+    this.scene = game.scene;
 
     this.directionalLight();
     this.hemisphereLight();

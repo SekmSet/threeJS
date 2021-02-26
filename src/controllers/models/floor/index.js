@@ -1,41 +1,20 @@
-// import * as THREE from "three";
-//
-// tmpFloor() {
-//     let mesh = new THREE.Mesh(
-//         new THREE.PlaneBufferGeometry(2000, 2000),
-//         new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
-//     );
-//     mesh.rotation.x = -Math.PI / 2;
-//     // mesh.position.y = 5;
-//     mesh.receiveShadow = true;
-//     mesh.material.transparent = true;
-//     this.scene.add(mesh);
-//
-//     let grid = new THREE.GridHelper(2000, 40, 0x000000, 0x000000);
-//     //grid.position.y = -100;
-//     grid.material.opacity = 0.2;
-//     // grid.position.y = 5;
-//     grid.material.transparent = true;
-//     // this.scene.add(grid);
-// }
-//
-// grassFloor() {
-//     const planeSize = 500;
-//     const loader = new THREE.TextureLoader();
-//     const texture = loader.load("src/resources/grass/grass_low_poly.obj");
-//     texture.wrapS = THREE.RepeatWrapping;
-//     texture.wrapT = THREE.RepeatWrapping;
-//
-//     texture.magFilter = THREE.NearestFilter;
-//     const repeats = planeSize / 2;
-//     texture.repeat.set(repeats, repeats);
-//
-//     const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
-//     const planeMat = new THREE.MeshPhongMaterial({
-//         map: texture,
-//         side: THREE.DoubleSide,
-//     });
-//     const mesh = new THREE.Mesh(planeGeo, planeMat);
-//     mesh.rotation.x = Math.PI * -0.5;
-//     this.scene.add(mesh);
-// }
+import * as THREE from "three";
+
+export default class Floor {
+  constructor(game) {
+    this.game = game;
+  }
+
+  loadModel() {
+    let floor_geometry = new THREE.PlaneBufferGeometry(5000, 5000, 60, 60);
+    floor_geometry.rotateX(-Math.PI / 2);
+    floor_geometry = floor_geometry.toNonIndexed();
+
+    const floor_texture = new THREE.TextureLoader().load("grass.png");
+    const floor_material = new THREE.MeshPhongMaterial({ map: floor_texture });
+    let floor = new THREE.Mesh(floor_geometry, floor_material);
+    floor.castShadow = false;
+    floor.receiveShadow = true;
+    this.game.scene.add(floor);
+  }
+}
