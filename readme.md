@@ -22,6 +22,8 @@ gsutil rsync -r src gs://last_samourai.sekhmset.me/src
 
 ## Links
 
+[Online game](http://last_samourai.sekhmset.me/)
+
 ### General links : tuto, documentation
 
 * [ThreeJS](https://threejs.org)

@@ -18,6 +18,7 @@ export default class Music {
 
     camera.add(this.listener);
 
+    // fix bug permission auto start music
     document.documentElement.addEventListener("mousedown", () => {
       if (!this.sound) {
         this.sound.resume();
